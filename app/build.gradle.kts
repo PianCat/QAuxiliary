@@ -325,7 +325,10 @@ dependencies {
     implementation(libs.material.dialogs.input)
     // festival title
     implementation(libs.confetti)
-    implementation(libs.weatherView)
+    implementation(libs.weatherView) {
+        exclude(group = "com.github.plattysoft", module = "Leonids")
+    }
+    implementation(libs.leonids)
     implementation(libs.appcenter.analytics)
     implementation(libs.appcenter.crashes)
     implementation(libs.kotlinx.serialization.json)
