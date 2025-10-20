@@ -233,8 +233,117 @@ object MessagingStyleNotification : CommonSwitchFunctionHook(SyncUtils.PROC_ANY)
         return shortcut
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotification(
+        content: String,
+        senderName: String,
+        senderUin: Long,
+        senderIcon: IconCompat,
+        groupName: String?,
+        groupUin: Long?,
+        groupIcon: IconCompat?,
+        shortcut: ShortcutInfoCompat,
+        oldNotification: Notification,
+        isSpecial: Boolean
+    ): Notification {
+        // 如果是群组消息，使用旧版逻辑
+        if (groupUin != null) {
+            return createGroupNotification(
+                content,
+                senderName,
+                senderUin,
+                senderIcon,
+                groupName,
+                groupUin,
+                groupIcon,
+                shortcut,
+                oldNotification,
+                isSpecial
+            )
+        }
+        
+        // 非群组消息使用新版逻辑
+        return createPrivateNotification(
+            content,
+            senderName,
+            senderUin,
+            senderIcon,
+            groupName,
+            groupUin,
+            groupIcon,
+            shortcut,
+            oldNotification,
+            isSpecial
+        )
+    }
+    
+    // 群组消息创建逻辑
+    private fun createGroupNotification(
+        content: String,
+        senderName: String,
+        senderUin: Long,
+        senderIcon: IconCompat,
+        groupName: String?,
+        groupUin: Long?,
+        groupIcon: IconCompat?,
+        shortcut: ShortcutInfoCompat,
+        oldNotification: Notification,
+        isSpecial: Boolean
+    ): Notification {
+        val mainUin = groupUin!!
+        val mainName = groupName ?: ""
+        val mainIcon = groupIcon
+        val channelId = NotifyChannel.GROUP
+
+        var messageStyle = historyMessage["$channelId+$mainUin"]
+
+        if (messageStyle == null) {
+            messageStyle = MessagingStyle(
+                Person.Builder()
+                    .setName(mainName)
+                    .setIcon(mainIcon)
+                    .setKey(mainUin.toString())
+                    .build()
+            )
+            messageStyle.conversationTitle = mainName
+            messageStyle.isGroupConversation = true
+            historyMessage["$channelId+$mainUin"] = messageStyle
+        }
+        
+        val senderPerson = Person.Builder()
+            .setName(senderName)
+            .setIcon(senderIcon)
+            .setKey(senderUin.toString())
+            .build()
+            
+        val message = MessagingStyle.Message(content, oldNotification.`when`, senderPerson)
+        messageStyle.addMessage(message)
+        
+        // 创建通知通道，但不设置会话ID，避免产生会话通知
+        val notificationChannel = NotificationChannel(mainUin.toString(), mainName, NotificationManager.IMPORTANCE_HIGH).apply {
+            group = "qq_evolution"
+            description = "来自 $mainName 的消息"
+            // 注意：不设置 setConversationId，避免产生会话通知
+        }
+        val notificationManager = hostInfo.application.getSystemService(NotificationManager::class.java)
+        if (notificationManager.getNotificationChannel(notificationChannel.id) == null) {
+            notificationManager.createNotificationChannel(notificationChannel)
+        }
+        
+        val builder = NotificationCompat.Builder(hostInfo.application, oldNotification)
+            .setContentTitle(mainName)
+            .setContentText(content)
+            .setLargeIcon(null as Bitmap?)
+            .setStyle(messageStyle)
+            .setChannelId(notificationChannel.id)
+            // 不设置气泡元数据，避免产生气泡通知
+
+        builder.setShortcutInfo(shortcut)
+        return builder.build()
+    }
+    
+    // 私聊消息创建逻辑
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createPrivateNotification(
         content: String,
         senderName: String,
         senderUin: Long,
