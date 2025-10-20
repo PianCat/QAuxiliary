@@ -318,23 +318,15 @@ object MessagingStyleNotification : CommonSwitchFunctionHook(SyncUtils.PROC_ANY)
         val message = MessagingStyle.Message(content, oldNotification.`when`, senderPerson)
         messageStyle.addMessage(message)
         
-        // 创建通知通道，但不设置会话ID，避免产生会话通知
-        val notificationChannel = NotificationChannel(mainUin.toString(), mainName, NotificationManager.IMPORTANCE_HIGH).apply {
-            group = "qq_evolution"
-            description = "来自 $mainName 的消息"
-            // 注意：不设置 setConversationId，避免产生会话通知
-        }
-        val notificationManager = hostInfo.application.getSystemService(NotificationManager::class.java)
-        if (notificationManager.getNotificationChannel(notificationChannel.id) == null) {
-            notificationManager.createNotificationChannel(notificationChannel)
-        }
+        // 使用旧版方式获取通知通道ID，确保群组消息走统一的群组通道
+        val channelIdString = getChannelId(channelId)
         
         val builder = NotificationCompat.Builder(hostInfo.application, oldNotification)
             .setContentTitle(mainName)
             .setContentText(content)
             .setLargeIcon(null as Bitmap?)
             .setStyle(messageStyle)
-            .setChannelId(notificationChannel.id)
+            .setChannelId(channelIdString)
             // 不设置气泡元数据，避免产生气泡通知
 
         builder.setShortcutInfo(shortcut)
