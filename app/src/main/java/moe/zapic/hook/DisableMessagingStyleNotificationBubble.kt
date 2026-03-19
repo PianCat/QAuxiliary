@@ -23,35 +23,31 @@ package moe.zapic.hook
 
 import io.github.qauxv.base.annotation.FunctionHookEntry
 import io.github.qauxv.base.annotation.UiItemAgentEntry
-import io.github.qauxv.config.ConfigManager
 import io.github.qauxv.dsl.FunctionEntryRouter
 import io.github.qauxv.hook.CommonSwitchFunctionHook
 import io.github.qauxv.util.SyncUtils
 
 @FunctionHookEntry
 @UiItemAgentEntry
-object DisableConversationNotificationAndBubble : CommonSwitchFunctionHook(SyncUtils.PROC_MAIN) {
-
-    private const val CFG_KEY = "MessagingStyleNotification.disableConversationNotificationAndBubble"
+object DisableMessagingStyleNotificationBubble : CommonSwitchFunctionHook(SyncUtils.PROC_MAIN) {
 
     override val isAvailable: Boolean
         get() = MessagingStyleNotification.isAvailable
 
-    override val name: String = "禁用通知会话子渠道与气泡"
+    override val name: String = "禁用通知气泡"
 
     override val description: String =
-        "不创建通知会话子渠道与气泡，以在某些深度定制安卓中获得更好的通知体验"
+        "禁用 MessagingStyle 通知气泡，以适配部分系统无法单独控制气泡功能的状况"
 
     override val extraSearchKeywords: Array<String> =
-        arrayOf("会话通知", "会话子渠道", "Bubble", "气泡通知")
+        arrayOf("Bubble", "气泡通知", "会话通知", "通知气泡")
 
     override val uiItemLocation = FunctionEntryRouter.Locations.Auxiliary.NOTIFICATION_CATEGORY
 
     override var isEnabled: Boolean
-        get() = ConfigManager.getDefaultConfig().getBooleanOrDefault(CFG_KEY, false)
+        get() = MessagingStyleNotificationConfig.disableBubble
         set(value) {
-            ConfigManager.getDefaultConfig().putBoolean(CFG_KEY, value)
-            MessagingStyleNotificationChannelCleaner.cleanupIfNeeded(value)
+            MessagingStyleNotificationConfig.disableBubble = value
         }
 
     override fun initOnce(): Boolean = true
