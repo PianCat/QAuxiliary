@@ -34,10 +34,10 @@ object DisableConversationNotificationSubChannel : CommonSwitchFunctionHook(Sync
     override val isAvailable: Boolean
         get() = MessagingStyleNotification.isAvailable
 
-    override val name: String = "不使用会话子频道发送通知"
+    override val name: String = "禁用通知子渠道发送通知"
 
     override val description: String =
-        "允许不通过会话子频道发送通知，以降低通知渠道管理复杂度"
+        "不通过通知子渠道发送通知，以降低通知渠道管理复杂度"
 
     override val extraSearchKeywords: Array<String> =
         arrayOf("会话通知", "会话子频道", "子频道", "通知渠道")

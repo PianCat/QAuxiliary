@@ -37,7 +37,7 @@ object DisableMessagingStyleNotificationBubble : CommonSwitchFunctionHook(SyncUt
     override val name: String = "禁用通知气泡"
 
     override val description: String =
-        "禁用 MessagingStyle 通知气泡，以适配部分系统无法单独控制气泡功能的状况"
+        "禁用会话通知气泡，以适配部分系统无法单独控制气泡功能或气泡功能异常的状况"
 
     override val extraSearchKeywords: Array<String> =
         arrayOf("Bubble", "气泡通知", "会话通知", "通知气泡")
